@@ -44,6 +44,9 @@ func main() {
 		}
 	})
 
+	app.Post("/casbin", Casbin)
+	app.Post("/casbinJSON", CasbinJSON)
+
 	// listen and serve on http://0.0.0.0:8080.
 	app.Run(iris.Addr(":8080"))
 }
@@ -61,3 +64,57 @@ func main2(){
 	}
 }
 
+func Casbin(ctx iris.Context) {
+	e := casbin.NewEnforcer("abac_model.conf", "basic_policy.csv")
+	sub:= ctx.PostValue("sub")
+	obj:= ctx.PostValue("obj")
+	act:= ctx.PostValue("act")
+	env:= ctx.PostValue("env")
+	if e.Enforce(sub, obj, act, env) == true {
+		ctx.JSON(iris.Map{
+			"message": "halo",
+			"value":"true",
+		})
+	}else{
+		ctx.JSON(iris.Map{
+			"message": "halo",
+			"value":"false",
+		})
+	}
+}
+
+type Req struct{
+	Sub string `json:"sub"`
+	Obj string `json:"obj"`
+	Act string `json:"act"`
+	Env string `json:"env"`
+}
+
+func CasbinJSON(ctx iris.Context) {
+
+	var r Req
+	err:= ctx.ReadJSON(&r)
+	if err!=nil{
+		ctx.JSON(iris.Map{
+			"message": "data not valid",
+		})
+		return
+	}
+
+	e := casbin.NewEnforcer("abac_model.conf", "basic_policy.csv")
+	sub:= r.Sub
+	obj:= r.Obj
+	act:= r.Act
+	env:= r.Env
+	if e.Enforce(sub, obj, act, env) == true {
+		ctx.JSON(iris.Map{
+			"message": "halo",
+			"value":"true",
+		})
+	}else{
+		ctx.JSON(iris.Map{
+			"message": "halo",
+			"value":"false",
+		})
+	}
+}
