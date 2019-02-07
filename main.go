@@ -25,6 +25,24 @@ func main() {
 		})
 	})
 
+	app.Get("/casbin", func(ctx iris.Context) {
+		e := casbin.NewEnforcer("abac_model.conf", "basic_policy.csv")
+		sub:= ctx.URLParam("sub")
+		obj:= ctx.URLParam("obj")
+		act:= ctx.URLParam("act")
+		env:= ctx.URLParam("env")
+		if e.Enforce(sub, obj, act, env) == true {
+			ctx.JSON(iris.Map{
+				"message": "halo",
+				"value":"true",
+			})
+		}else{
+			ctx.JSON(iris.Map{
+				"message": "halo",
+				"value":"false",
+			})
+		}
+	})
 
 	// listen and serve on http://0.0.0.0:8080.
 	app.Run(iris.Addr(":8080"))
